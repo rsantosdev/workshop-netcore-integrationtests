@@ -10,6 +10,7 @@ using Workshop.IntegrationTests.Platform.Jwt;
 using Workshop.IntegrationTests.Platform.Models;
 using Workshop.IntegrationTests.Platform.Utils;
 using Workshop.IntegrationTests.Tests.Configuration;
+using Workshop.IntegrationTests.Tests.Factories;
 using Xunit;
 
 namespace Workshop.IntegrationTests.Tests.Controllers
@@ -32,8 +33,8 @@ namespace Workshop.IntegrationTests.Tests.Controllers
             // Clear Database
             await using var con = new SqlConnection(Fixture.Configuration.GetConnectionString("DefaultConnection"));
             await con.ExecuteAsync(Fixture.SqlDeleteAllTables);
-            
-            DataContext = new WorkshopDataContext(Fixture.GetDbContextOptions<WorkshopDataContext>());
+
+            DataContext = DbContextFactory.CreateDataContext(Fixture.Configuration);
 
             // TODO: Seed Database
 

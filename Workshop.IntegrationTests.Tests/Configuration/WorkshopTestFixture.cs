@@ -1,16 +1,18 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Workshop.IntegrationTests.Api;
-using Workshop.IntegrationTests.Platform.Data;
+using Workshop.IntegrationTests.Tests.Factories;
+using Xunit;
 
 namespace Workshop.IntegrationTests.Tests.Configuration
 {
-    public class WorkshopTestFixture : WebApplicationFactory<Startup>
+    public class WorkshopTestFixture : WebApplicationFactory<Startup>, IAsyncLifetime
     {
         public readonly IConfiguration Configuration;
         public readonly ILogger Logger;
@@ -23,30 +25,6 @@ namespace Workshop.IntegrationTests.Tests.Configuration
 
             SqlDeleteAllTables = File.ReadAllText(
                 Path.Combine(Directory.GetCurrentDirectory(), "SqlScripts", "deletealltables.sql"));
-
-            SetupDatabase();
-        }
-
-        public DbContextOptions<TContext> GetDbContextOptions<TContext>() where TContext : DbContext
-        {
-            var connString = Configuration.GetConnectionString("DefaultConnection");
-            var opts = new DbContextOptionsBuilder<TContext>();
-            opts.UseSqlServer(connString, 
-                provider => provider.EnableRetryOnFailure());
-            opts.EnableSensitiveDataLogging();
-
-            return opts.Options;
-        }
-
-        private void SetupDatabase()
-        {
-            using var context = new WorkshopDataContext(GetDbContextOptions<WorkshopDataContext>());
-
-            var pendingMigrations = context.Database.GetPendingMigrations();
-            if (pendingMigrations.Any())
-            {
-                context.Database.Migrate();
-            }
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -56,6 +34,22 @@ namespace Workshop.IntegrationTests.Tests.Configuration
                 cfg.Sources.Clear();
                 cfg.AddConfiguration(Configuration);
             });
+        }
+
+        public async Task InitializeAsync()
+        {
+            await using var context = DbContextFactory.CreateDataContext(Configuration);
+
+            var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+            if (pendingMigrations.Any())
+            {
+                await context.Database.MigrateAsync();
+            }
+        }
+
+        public async Task DisposeAsync()
+        {
+            await Task.Yield();
         }
     }
 }
