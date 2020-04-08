@@ -19,3 +19,4 @@ namespace Workshop.IntegrationTests.Tests.ServiceTests
         }
     }
 }
+
