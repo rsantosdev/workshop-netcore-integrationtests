@@ -11,5 +11,11 @@ namespace Workshop.IntegrationTests.Tests.ServiceTests
             var result = PasswordHash.HashPassword(string.Empty, string.Empty);
             Assert.Equal(string.Empty, result);
         }
+
+        [Fact]
+        public void ShouldFailt()
+        {
+            Assert.True(false);
+        }
     }
 }
