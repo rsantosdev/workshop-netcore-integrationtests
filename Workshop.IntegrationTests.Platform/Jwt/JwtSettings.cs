@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Workshop.IntegrationTests.Platform.Jwt
 {
+    [ExcludeFromCodeCoverage]
     public static class JwtSettings
     {
         static SecurityKey _key;
